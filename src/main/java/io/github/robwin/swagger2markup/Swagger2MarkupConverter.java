@@ -3,6 +3,7 @@ package io.github.robwin.swagger2markup;
 import com.wordnik.swagger.models.Swagger;
 import io.github.robwin.markup.builder.MarkupLanguage;
 import io.github.robwin.swagger2markup.builder.document.DefinitionsDocument;
+import io.github.robwin.swagger2markup.builder.document.MarkupDocument;
 import io.github.robwin.swagger2markup.builder.document.PathsDocument;
 import io.swagger.parser.SwaggerParser;
 import org.apache.commons.lang.Validate;
@@ -24,18 +25,22 @@ public class Swagger2MarkupConverter {
     private final String schemasFolderPath;
     private static final String PATHS_DOCUMENT = "paths";
     private static final String DEFINITIONS_DOCUMENT = "definitions";
+    private final MarkupDocument pathsDocument;
 
     /**
      * @param markupLanguage the markup language which is used to generate the files
      * @param swagger the Swagger object
      * @param examplesFolderPath the folderPath where examples are stored
      * @param schemasFolderPath the folderPath where (XML, JSON)-Schema  files are stored
+     * @param pathsDocument
      */
-    Swagger2MarkupConverter(MarkupLanguage markupLanguage, Swagger swagger, String examplesFolderPath, String schemasFolderPath){
+    Swagger2MarkupConverter(MarkupLanguage markupLanguage, Swagger swagger, String examplesFolderPath,
+                            String schemasFolderPath, MarkupDocument pathsDocument){
         this.markupLanguage = markupLanguage;
         this.swagger = swagger;
         this.examplesFolderPath = examplesFolderPath;
         this.schemasFolderPath = schemasFolderPath;
+        this.pathsDocument = pathsDocument;
     }
 
     /**
@@ -68,7 +73,12 @@ public class Swagger2MarkupConverter {
      * @throws IOException if a file cannot be written
      */
     private void buildDocuments(String directory) throws IOException {
-        new PathsDocument(swagger, markupLanguage, examplesFolderPath).build().writeToFile(directory, PATHS_DOCUMENT, StandardCharsets.UTF_8);
+
+        MarkupDocument markupDocument = pathsDocument;
+        if (markupDocument == null)
+            markupDocument = new PathsDocument(swagger, markupLanguage, examplesFolderPath);
+
+        markupDocument.build().writeToFile(directory, PATHS_DOCUMENT, StandardCharsets.UTF_8);
         new DefinitionsDocument(swagger, markupLanguage, schemasFolderPath).build().writeToFile(directory, DEFINITIONS_DOCUMENT, StandardCharsets.UTF_8);
     }
 
@@ -78,6 +88,7 @@ public class Swagger2MarkupConverter {
         private String examplesFolderPath;
         private String schemasFolderPath;
         private MarkupLanguage markupLanguage = MarkupLanguage.ASCIIDOC;
+        private MarkupDocument pathsDocument;
 
         /**
          * Creates a Builder using a given Swagger source.
@@ -89,7 +100,8 @@ public class Swagger2MarkupConverter {
         }
 
         public Swagger2MarkupConverter build(){
-            return new Swagger2MarkupConverter(markupLanguage, swagger, examplesFolderPath, schemasFolderPath);
+            return new Swagger2MarkupConverter(markupLanguage, swagger, examplesFolderPath,
+                                            schemasFolderPath, pathsDocument);
         }
 
         /**
@@ -111,6 +123,10 @@ public class Swagger2MarkupConverter {
          */
         public Builder withExamples(String examplesFolderPath){
             this.examplesFolderPath = examplesFolderPath;
+            return this;
+        }
+        public Builder withPathsDocument(MarkupDocument pathsDocument) {
+            this.pathsDocument = pathsDocument;
             return this;
         }
 

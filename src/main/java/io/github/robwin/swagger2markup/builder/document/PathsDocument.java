@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * @author Robert Winkler
  */
-public class PathsDocument extends MarkupDocument {
+public class PathsDocument extends PathsMarkupDocument {
 
     private static final String VERSION = "Version: ";
     private static final String DESCRIPTION_COLUMN = "Description";
@@ -68,7 +68,7 @@ public class PathsDocument extends MarkupDocument {
      *
      * @param info the Swagger Info
      */
-    private void documentHeader(Info info) {
+    public void documentHeader(Info info) {
         this.markupDocBuilder
                 .documentTitle(info.getTitle())
                 .textLine(info.getDescription())
@@ -81,7 +81,7 @@ public class PathsDocument extends MarkupDocument {
      *
      * @param paths a Map of Swagger Paths
      */
-    private void paths(Map<String, Path> paths) throws IOException {
+    public void paths(Map<String, Path> paths) throws IOException {
         if(MapUtils.isNotEmpty(paths)) {
             //this.documentBuilder.sectionTitleLevel1(FEATURES);
             for (Map.Entry<String, Path> entry : paths.entrySet()) {
@@ -102,7 +102,7 @@ public class PathsDocument extends MarkupDocument {
      * @param resourcePath the URL of the path
      * @param operation the Swagger Operation
      */
-    private void path(String httpMethod, String resourcePath, Operation operation) throws IOException {
+    public void path(String httpMethod, String resourcePath, Operation operation) throws IOException {
         if(operation != null){
             pathTitle(httpMethod, resourcePath, operation);
             descriptionSection(operation);
@@ -115,7 +115,7 @@ public class PathsDocument extends MarkupDocument {
     }
 
 
-    private void pathTitle(String httpMethod, String resourcePath, Operation operation) {
+    public void pathTitle(String httpMethod, String resourcePath, Operation operation) {
         String summary = operation.getSummary();
         String title;
         if(StringUtils.isNotBlank(summary)) {
@@ -131,7 +131,7 @@ public class PathsDocument extends MarkupDocument {
         }
     }
 
-    private void descriptionSection(Operation operation) {
+    public void descriptionSection(Operation operation) {
         String description = operation.getDescription();
         if(StringUtils.isNotBlank(description)){
             this.markupDocBuilder.sectionTitleLevel2(DESCRIPTION);
@@ -139,7 +139,7 @@ public class PathsDocument extends MarkupDocument {
         }
     }
 
-    private void parametersSection(Operation operation) {
+    public void parametersSection(Operation operation) {
         List<Parameter> parameters = operation.getParameters();
         if(CollectionUtils.isNotEmpty(parameters)){
             List<String> csvContent = new ArrayList<>();
@@ -152,7 +152,7 @@ public class PathsDocument extends MarkupDocument {
         }
     }
 
-    private void consumesSection(Operation operation) {
+    public void consumesSection(Operation operation) {
         List<String> consumes = operation.getConsumes();
         if(CollectionUtils.isNotEmpty(consumes)){
             this.markupDocBuilder.sectionTitleLevel2(CONSUMES);
@@ -161,7 +161,7 @@ public class PathsDocument extends MarkupDocument {
 
     }
 
-    private void producesSection(Operation operation) {
+    public void producesSection(Operation operation) {
         List<String> produces = operation.getProduces();
         if(CollectionUtils.isNotEmpty(produces)){
             this.markupDocBuilder.sectionTitleLevel2(PRODUCES);
@@ -175,7 +175,7 @@ public class PathsDocument extends MarkupDocument {
      * @param operation the Swagger Operation
      * @throws IOException if the example file is not readable
      */
-    private void examplesSection(Operation operation) throws IOException {
+    public void examplesSection(Operation operation) throws IOException {
         if(examplesEnabled){
             String summary = operation.getSummary();
             if(StringUtils.isNotBlank(summary)) {
@@ -194,7 +194,7 @@ public class PathsDocument extends MarkupDocument {
      * @param exampleFileName the name of the example file
      * @throws IOException
      */
-    private void example(String title, String exampleFolder, String exampleFileName) throws IOException {
+    public void example(String title, String exampleFolder, String exampleFileName) throws IOException {
         for (String fileNameExtension : markupLanguage.getFileNameExtensions()) {
             java.nio.file.Path path = Paths.get(examplesFolderPath, exampleFolder, exampleFileName + fileNameExtension);
             if (Files.isReadable(path)) {
@@ -212,7 +212,7 @@ public class PathsDocument extends MarkupDocument {
         }
     }
 
-    private void responsesSection(Operation operation) {
+    public void responsesSection(Operation operation) {
         Map<String, Response> responses = operation.getResponses();
         if(MapUtils.isNotEmpty(responses)){
             List<String> csvContent = new ArrayList<>();
@@ -224,6 +224,30 @@ public class PathsDocument extends MarkupDocument {
             this.markupDocBuilder.sectionTitleLevel2(RESPONSES);
             this.markupDocBuilder.tableWithHeaderRow(csvContent);
         }
+    }
+
+
+    public static class Builder{
+        private final Swagger swagger;
+        private String examplesFolderPath;
+        private final MarkupLanguage markupLanguage;
+
+
+        public Builder(Swagger swagger, MarkupLanguage markupLanguage) {
+            this.swagger = swagger;
+            this.markupLanguage = markupLanguage;
+        }
+
+        public PathsDocument build() {
+            return new PathsDocument(swagger, markupLanguage, examplesFolderPath);
+        }
+
+        public Builder withExamples(String examplesFolderPath){
+            this.examplesFolderPath = examplesFolderPath;
+            return this;
+        }
+
+
     }
 
 }
