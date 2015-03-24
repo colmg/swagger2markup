@@ -37,7 +37,7 @@ public class PathsDocument extends PathsMarkupDocument {
     public static final String RESPONSE_EXAMPLE_FILE_NAME = "response";
 
     private boolean examplesEnabled;
-    private String examplesFolderPath;
+    protected String examplesFolderPath;
 
     public PathsDocument(Swagger swagger, MarkupLanguage markupLanguage, String examplesFolderPath){
         super(swagger, markupLanguage);
@@ -225,29 +225,4 @@ public class PathsDocument extends PathsMarkupDocument {
             this.markupDocBuilder.tableWithHeaderRow(csvContent);
         }
     }
-
-
-    public static class Builder{
-        private final Swagger swagger;
-        private String examplesFolderPath;
-        private final MarkupLanguage markupLanguage;
-
-
-        public Builder(Swagger swagger, MarkupLanguage markupLanguage) {
-            this.swagger = swagger;
-            this.markupLanguage = markupLanguage;
-        }
-
-        public PathsDocument build() {
-            return new PathsDocument(swagger, markupLanguage, examplesFolderPath);
-        }
-
-        public Builder withExamples(String examplesFolderPath){
-            this.examplesFolderPath = examplesFolderPath;
-            return this;
-        }
-
-
-    }
-
 }
